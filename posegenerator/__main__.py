@@ -9,7 +9,10 @@ import numpy as np
 @click.argument('INPUT_VIDEO', type=click.Path(exists=True))
 @click.argument('POSES_JSON', type=click.Path(exists=True))
 @click.argument('OUTPUT_VIDEO', type=click.Path())
-def main(input_video, poses_json, output_video):
+@click.option('-v', '--verbose',
+              is_flag=True,
+              help="Print more output.")
+def main(input_video, poses_json, output_video, verbose):
 
     bodyparts = ["head", "lankle", "lelbow", "lhip", "lknee", "lshoulder", "lwrist",
                  "pelvis", "rankle", "relbow", "rhip", "rknee", "rshoulder", "rwrist",
@@ -71,14 +74,23 @@ def main(input_video, poses_json, output_video):
         sys.exit(1)
 
     frameCount = 0
+
+    totalFrames = int(input.get(cv2.CAP_PROP_FRAME_COUNT))
+
     while(input.isOpened()):
         ret, frame = input.read()
         if ret == True:
+
+            if frameCount <= totalFrames and verbose:
+                print("Processing frame " + str(1+frameCount) + " of " + str(totalFrames), end="")
+
             for i in range(len(bodyparts)):
                 x = int(pose_data[frameCount][bodyparts[i]]["coords"][0])
                 y = int(pose_data[frameCount][bodyparts[i]]["coords"][1])
 
                 coords[i] = (x,y)
+
+            if verbose: print(".",end="")
 
             # Connect joints
             for i in range(len(connections)):
@@ -90,14 +102,21 @@ def main(input_video, poses_json, output_video):
 
                 cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5)
 
+            if verbose: print(".",end="")
+
             # Draw circles at each joint
             for i in range(len(coords)):
                 cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1)
 
             output.write(frame)
+
+            if verbose: print(".done")
+
         else:
             break
         frameCount += 1
+
+    print("Processed " + str(totalFrames) + " frames. Output can be found in " + str(output_video))
 
     # Release the video objects
     input.release()
