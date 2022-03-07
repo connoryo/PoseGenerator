@@ -10,5 +10,5 @@ pip install -e .
 ```
 # Usage
 ```
-posegenerator --help | [INPUT_VIDEO] [POSES_JSON] [OUTPUT_VIDEO] 
+posegenerator --help | [-v] [INPUT_VIDEO] [POSES_JSON] [OUTPUT_VIDEO]
 ```
