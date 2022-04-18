@@ -12,7 +12,10 @@ import numpy as np
 @click.option('-v', '--verbose',
               is_flag=True,
               help="Print more output.")
-def main(input_video, poses_json, output_video, verbose):
+@click.option('-u', '--upper',
+              is_flag=True,
+              help="Draw upper body only.")
+def main(input_video, poses_json, output_video, verbose, upper):
 
     # Default values for body parts, connections, and color.
     # TODO: Read in these parameters from a JSON file
@@ -105,13 +108,13 @@ def main(input_video, poses_json, output_video, verbose):
                 x2 = coords[connections[i][1]][0]
                 y2 = coords[connections[i][1]][1]
 
-                cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5)
+                cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
 
             if verbose: print(".",end="")
 
             # Draw circles at each joint
             for i in range(len(coords)):
-                cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1)
+                cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
 
             # Write output frame
             output.write(frame)

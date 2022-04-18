@@ -1,0 +1,10 @@
+README.md
+setup.py
+posegenerator/__init__.py
+posegenerator/__main__.py
+posegenerator.egg-info/PKG-INFO
+posegenerator.egg-info/SOURCES.txt
+posegenerator.egg-info/dependency_links.txt
+posegenerator.egg-info/entry_points.txt
+posegenerator.egg-info/requires.txt
+posegenerator.egg-info/top_level.txt

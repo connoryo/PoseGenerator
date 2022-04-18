@@ -1,0 +1,3 @@
+[console_scripts]
+posegenerator = posegenerator.__main__:main
+
