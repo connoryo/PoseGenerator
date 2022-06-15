@@ -1,19 +1,23 @@
 # PoseGenerator
 Overlays positions from a pre-generated pose JSON file to a video.
 
-# Setup (Only tested on Mac)
+# Setup (Tested on macOS Monterey 12.3 and Ubuntu 20.04.4 LTS)
 
-Requires Click, OpenCV, and numpy.
+Requires Click, OpenCV, numpy, and MediaPipe.
 
 ```
-pip install -e .
+$ pwd
+~/Documents/PoseGenerator
+$ python3 -m venv env
+$ source env/bin/activate
+$ pip install -e .
 ```
 # Usage
 
-Output MUST be in MP4 format.
+Output file must be specified as either a MP4 or WEBM file.
 
 ```
-posegenerator --help | [-v] [INPUT_VIDEO] [POSES_JSON] [OUTPUT_VIDEO]
+posegenerator --help | [-v] [-b] [INPUT_VIDEO] [POSES_JSON] [OUTPUT_VIDEO]
 ```
 ex.
 ```
