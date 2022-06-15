@@ -13,7 +13,9 @@ setup(
     install_requires=[
         'click',
         'numpy',
-        'opencv-python'
+        'opencv-python',
+        'mediapipe',
+        'protobuf==3.20.*'
     ],
     python_requires='>=3.6',
     entry_points={

@@ -1,0 +1,6 @@
+__pycache__/
+env/
+*.mp4
+*.webm
+posegenerator.egg-info/
+posegenerator/__pycache__/

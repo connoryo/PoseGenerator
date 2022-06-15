@@ -4,6 +4,51 @@ import pathlib
 import json
 import sys
 import numpy as np
+import mediapipe as mp
+
+
+# Credit to pysource.com
+# https://pysource.com/2021/05/21/blur-faces-in-real-time-with-opencv-mediapipe-and-python/
+class FaceLandmarks:
+    def __init__(self):
+        # Init the MediaPipe face detection library
+        self.mp_face_detection = mp.solutions.face_detection
+        # model_selection = 0 is for close (<2m away) faces, while 1 is for far (~5m away) faces
+        # I figure most videos will want the "far" setting
+        self.face_detection = self.mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
+
+    def get_facial_landmarks(self, frame):
+        # Initialize frame properties, run face detection
+        frame_height, frame_width, _ = frame.shape
+        face_detection_results = self.face_detection.process(frame[:,:,::-1])
+
+        # If a face is detected
+        if face_detection_results.detections:
+            # From all detected faces, pick the one with the highest confidence
+            # This will likely be the subject of the video
+            max_conf = 0
+            for face_no, face in enumerate(face_detection_results.detections):
+                conf = face.score[0]
+                if conf > max_conf:
+                    max_conf = conf
+                    face_index = face_no
+
+            # Get bounding box coordinates from data
+            face_data = face_detection_results.detections[face_index].location_data
+
+            box = face_data.relative_bounding_box
+
+            # Mediapipe returns coordinates as a fraction of the frame size, so we need to convert for opencv
+            xmin = round(box.xmin * frame_width)
+            ymin = round(box.ymin * frame_height)
+            width = round(box.width * frame_width)
+            height = round(box.height * frame_height)
+
+            start_point = (xmin, ymin)
+            end_point = (start_point[0] + width, start_point[1] + height)
+
+        # Return the bounding box coords
+        return (start_point, end_point)
 
 @click.command()
 @click.argument('INPUT_VIDEO', type=click.Path(exists=True))
@@ -66,7 +111,12 @@ def main(input_video, poses_json, output_video, verbose):
     fps = input.get(cv2.CAP_PROP_FPS)
 
     # Prepare output video for writing
-    output = cv2.VideoWriter(output_video, cv2.VideoWriter_fourcc('m','p','4','v'), fps, (frame_width,frame_height))
+    extension = output_video.split('.')[-1];
+    
+    if extension == "webm":
+        output = cv2.VideoWriter(output_video, cv2.VideoWriter_fourcc('V','P','8','0'), fps, (frame_width,frame_height))
+    else:
+        output = cv2.VideoWriter(output_video, cv2.VideoWriter_fourcc('m','p','4','v'), fps, (frame_width,frame_height))
 
     # Check for valid input/output
     if (input.isOpened()== False):
@@ -81,9 +131,13 @@ def main(input_video, poses_json, output_video, verbose):
     frameCount = 0
     totalFrames = int(input.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # Loop through every frame of the input vide
-    while(input.isOpened()):
+    # Initialize landmarks for face blur
+    fl = FaceLandmarks()
+
+    # Loop through every frame of the input video
+    while(input.isOpened() and frameCount < totalFrames):
         ret, frame = input.read()
+
         # If a valid frame
         if ret == True:
             if frameCount <= totalFrames and verbose:
@@ -97,6 +151,13 @@ def main(input_video, poses_json, output_video, verbose):
 
             if verbose: print(".",end="")
 
+            # Blur face before drawing lines
+            face_bounding_box = fl.get_facial_landmarks(frame)
+
+            blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
+            mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
+            frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
+
             # Connect joints according to connections array
             for i in range(len(connections)):
                 x1 = coords[connections[i][0]][0]
@@ -105,13 +166,13 @@ def main(input_video, poses_json, output_video, verbose):
                 x2 = coords[connections[i][1]][0]
                 y2 = coords[connections[i][1]][1]
 
-                cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5)
+                cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
 
             if verbose: print(".",end="")
 
             # Draw circles at each joint
             for i in range(len(coords)):
-                cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1)
+                cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
 
             # Write output frame
             output.write(frame)
