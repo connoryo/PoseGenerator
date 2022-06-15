@@ -161,27 +161,37 @@ def main(input_video, poses_json, output_video, verbose, blur):
                 blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
                 mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
                 frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
-            
+
             # Connect joints according to connections array
             for i in range(len(connections)):
-                x1 = coords[connections[i][0]][0]
-                y1 = coords[connections[i][0]][1]
+                
+                # Get confidence level from both endpoints of the connection
+                conf1 = pose_data[frameCount][bodyparts[connections[i][0]]]["pointEstimationConfidence"][0]
+                conf2 = pose_data[frameCount][bodyparts[connections[i][1]]]["pointEstimationConfidence"][0]
+                
+                # Only draw line if both endpoints have a high enough confidence level
+                if conf1 >= 0.1 and conf2 >= 0.1:
+                    x1 = coords[connections[i][0]][0]
+                    y1 = coords[connections[i][0]][1]
 
-                x2 = coords[connections[i][1]][0]
-                y2 = coords[connections[i][1]][1]
+                    x2 = coords[connections[i][1]][0]
+                    y2 = coords[connections[i][1]][1]
 
-                cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
+                    cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
 
             if verbose: print(".",end="")
 
             # Draw circles at each joint
             for i in range(len(coords)):
-                cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
+                # Get confidence level for current joint
+                conf = pose_data[frameCount][bodyparts[i]]["pointEstimationConfidence"][0]
+                if conf >= 0.1:
+                    cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
 
             # Write output frame
             output.write(frame)
 
-            if verbose: print(".done")
+            if verbose: print(".done", end='\r')
 
         else:
             # Break loop when done with the input video
