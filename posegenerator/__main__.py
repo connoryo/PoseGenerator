@@ -57,7 +57,10 @@ class FaceLandmarks:
 @click.option('-v', '--verbose',
               is_flag=True,
               help="Print more output.")
-def main(input_video, poses_json, output_video, verbose):
+@click.option('-b', '--blur',
+              is_flag=True,
+              help="Blur faces.")
+def main(input_video, poses_json, output_video, verbose, blur):
 
     # Default values for body parts, connections, and color.
     # TODO: Read in these parameters from a JSON file
@@ -150,14 +153,15 @@ def main(input_video, poses_json, output_video, verbose):
                 coords[i] = (x,y)
 
             if verbose: print(".",end="")
-
+            
             # Blur face before drawing lines
-            face_bounding_box = fl.get_facial_landmarks(frame)
+            if blur:
+                face_bounding_box = fl.get_facial_landmarks(frame)
 
-            blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
-            mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
-            frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
-
+                blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
+                mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
+                frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
+            
             # Connect joints according to connections array
             for i in range(len(connections)):
                 x1 = coords[connections[i][0]][0]
