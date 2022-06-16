@@ -71,9 +71,7 @@ def main(input_video, poses_json, output_video, verbose, blur, upper):
                  "pelvis", "rankle", "relbow", "rhip", "rknee", "rshoulder", "rwrist",
                  "thorax", "upperneck"]
 
-    coords = np.empty(16, dtype=object)
-    coords.fill((0,0))
-
+    # Connections between body parts; numbers represent index in the bodyparts array
     connections = [ (8 , 11),
                     (11, 10),
                     (10, 7 ),
@@ -91,11 +89,15 @@ def main(input_video, poses_json, output_video, verbose, blur, upper):
                     (14, 15),
                     (15, 0)   ]
 
-    defaultColor = (27, 144, 254)
-    colors = np.empty(16, dtype=object)
+    # Init coordinate and line color arrays
+    coords = np.empty(len(bodyparts), dtype=object)
+    coords.fill((0,0))
+
+    defaultColor = (27, 144, 254) # Bright orange
+    colors = np.empty(len(connections), dtype=object)
     colors.fill(defaultColor)
 
-    # Designate parts to NOT render if upper is selected
+    # Designate index of parts to NOT render if upper is selected
     # lankle, lknee, rankle, rknee by default
     lower_joints = [1, 4, 8, 11]
 
@@ -120,7 +122,7 @@ def main(input_video, poses_json, output_video, verbose, blur, upper):
     fps = input.get(cv2.CAP_PROP_FPS)
 
     # Prepare output video for writing
-    extension = output_video.split('.')[-1];
+    extension = output_video.split('.')[-1]
     
     if extension == "webm":
         output = cv2.VideoWriter(output_video, cv2.VideoWriter_fourcc('V','P','8','0'), fps, (frame_width,frame_height))
