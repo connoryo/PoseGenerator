@@ -135,7 +135,8 @@ def main(input_video, poses_json, output_video, verbose, blur):
     totalFrames = int(input.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Initialize landmarks for face blur
-    fl = FaceLandmarks()
+    if blur:
+        fl = FaceLandmarks()
 
     # Loop through every frame of the input video
     while(input.isOpened() and frameCount < totalFrames):
