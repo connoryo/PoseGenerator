@@ -16,8 +16,9 @@ $ pip install -e .
 
 Output file must be specified as either a MP4 or WEBM file.
 
+
 ```
-posegenerator --help | [-v] [-b] [INPUT_VIDEO] [POSES_JSON] [OUTPUT_VIDEO]
+posegenerator --help | [-v] [-b] [-u] INPUT_VIDEO POSES_JSON OUTPUT_VIDEO
 ```
 ex.
 ```

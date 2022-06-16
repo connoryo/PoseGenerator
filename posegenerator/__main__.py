@@ -60,7 +60,10 @@ class FaceLandmarks:
 @click.option('-b', '--blur',
               is_flag=True,
               help="Blur faces.")
-def main(input_video, poses_json, output_video, verbose, blur):
+@click.option('-u', '--upper',
+              is_flag=True,
+              help="Only draw skeleton from the waist up.")
+def main(input_video, poses_json, output_video, verbose, blur, upper):
 
     # Default values for body parts, connections, and color.
     # TODO: Read in these parameters from a JSON file
@@ -92,6 +95,9 @@ def main(input_video, poses_json, output_video, verbose, blur):
     colors = np.empty(16, dtype=object)
     colors.fill(defaultColor)
 
+    # Designate parts to NOT render if upper is selected
+    # lankle, lknee, rankle, rknee by default
+    lower_joints = [1, 4, 8, 11]
 
     # Load in the poses JSON file
     try:
@@ -177,8 +183,10 @@ def main(input_video, poses_json, output_video, verbose, blur):
 
                     x2 = coords[connections[i][1]][0]
                     y2 = coords[connections[i][1]][1]
-
-                    cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
+                    
+                    if not upper or (upper and connections[i][0] not in lower_joints
+                                           and connections[i][1] not in lower_joints):
+                        cv2.line(frame, (x1, y1), (x2, y2), colors[i], 5, lineType=cv2.LINE_AA)
 
             if verbose: print(".",end="")
 
@@ -187,7 +195,8 @@ def main(input_video, poses_json, output_video, verbose, blur):
                 # Get confidence level for current joint
                 conf = pose_data[frameCount][bodyparts[i]]["pointEstimationConfidence"][0]
                 if conf >= 0.1:
-                    cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
+                    if not upper or (upper and i not in lower_joints):
+                        cv2.circle(frame, (coords[i][0], coords[i][1]), 5, (201, 91, 0), -1, lineType=cv2.LINE_AA)
 
             # Write output frame
             output.write(frame)
