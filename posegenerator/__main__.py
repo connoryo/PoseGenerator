@@ -18,6 +18,9 @@ class FaceLandmarks:
         self.face_detection = self.mp_face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.5)
 
     def get_facial_landmarks(self, frame):
+        # Initialize results in case we don't find a face
+        start_point = end_point = -1
+        
         # Initialize frame properties, run face detection
         frame_height, frame_width, _ = frame.shape
         face_detection_results = self.face_detection.process(frame[:,:,::-1])
@@ -167,9 +170,12 @@ def main(input_video, poses_json, output_video, verbose, blur, upper):
             if blur:
                 face_bounding_box = fl.get_facial_landmarks(frame)
 
-                blurred_frame = cv2.GaussianBlur(frame, (21, 21), 0)
-                mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
-                frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
+                if face_bounding_box[0] != -1 and face_bounding_box[1] != -1:
+                    if verbose:
+                        print("Face detected", end = '')
+                    blurred_frame = cv2.GaussianBlur(frame, (51, 51), 0)
+                    mask = cv2.rectangle(frame, face_bounding_box[0], face_bounding_box[1], (255, 255, 255), -1)
+                    frame = np.where(mask==np.array([255, 255, 255]), blurred_frame, frame)
 
             # Connect joints according to connections array
             for i in range(len(connections)):
@@ -203,7 +209,7 @@ def main(input_video, poses_json, output_video, verbose, blur, upper):
             # Write output frame
             output.write(frame)
 
-            if verbose: print(".done", end='\r')
+            if verbose: print(".done                ", end='\r')
 
         else:
             # Break loop when done with the input video
