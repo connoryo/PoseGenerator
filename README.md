@@ -1,9 +1,11 @@
 # PoseGenerator
 Overlays positions from a pre-generated pose JSON file to a video.
 
-# Setup (Tested on macOS Monterey 12.3 and Ubuntu 20.04.4 LTS)
+# Setup
 
 Requires Click, OpenCV, numpy, and MediaPipe.
+
+Tested on Windows 11, macOS Monterey 12.3, and Ubuntu 20.04.4 LTS
 
 ```
 $ pwd
